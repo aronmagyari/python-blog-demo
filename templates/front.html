@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <a href="/newpost" class="btn btn-info">New Post</a>
+  <div class="list-group">
+
+    {% for p in posts %}
+
+      <a href="/blog/{{p.id}}" class="list-group-item">
+        <h4 class="list-group-item-heading">{{ p.subject }}
+          <small>{{p.created.strftime("%b %d, %Y")}}</small>
+        </h4>
+        <p class="list-group-item-text">
+          {{p._render_text | safe}}
+        </p>
+      </a>
+
+    {% endfor %}
+
+  </div>
+
+{% endblock %}
