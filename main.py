@@ -18,9 +18,8 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
 
-    def render(self):
-        self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self)
+    def _render_text(self):
+        return self.content.replace('\n', '<br>')
 
 
 class BlogHandler(webapp2.RequestHandler):
@@ -59,8 +58,19 @@ class NewPost(BlogHandler):
             error = "Include subject and content, please!"
             self.render("newpost.html", subject=subject, content=content, error=error)
 
+class PostPage(BlogHandler):
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        if not post:
+            self.error(404)
+            return
+
+        self.render("post.html", p = post)
 
 app = webapp2.WSGIApplication([
     ('/', BlogFront),
-    ('/newpost', NewPost)
+    ('/newpost', NewPost),
+    ('/blog/([0-9]+)', PostPage)
 ], debug = True)
