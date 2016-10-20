@@ -12,10 +12,22 @@
         <div class="navbar-header">
           <a class="navbar-brand" href="/"><mark>Python Blog</mark></a>
         </div>
-        <ul class="nav navbar-nav navbar-right">
-          <li><a href="/login">Login</a></li>
-          <li><a href="/signup">Sign up</a></li>
-        </ul>
+
+          {% if user %}
+            <p class="navbar-text">Hello, {{ user.name }}!</p>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="/logout">Logout</a></li>
+            </ul>
+
+          {% else %}
+
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="/login">Login</a></li>
+              <li><a href="/signup">Sign up</a></li>
+            </ul>
+
+          {% endif %}
+
       </div>
     </nav>
 
