@@ -128,7 +128,7 @@ class NewPost(BlogHandler):
         if self.user:
             self.render('newpost.html', user = self.user)
         else:
-            self.redirect('/signup')
+            self.redirect('/login')
 
     def post(self):
 
