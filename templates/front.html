@@ -19,6 +19,7 @@
             <small>{{p.created.strftime("%b %d, %Y")}}</small>
           </h4>
           <p class="list-group-item-text">
+            <strong>{{ p.owner }}</strong><br>
             {{p._render_text() | safe}}
           </p>
         </a>

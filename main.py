@@ -49,6 +49,7 @@ def users_key(group = 'default'):
 class Post(db.Model):
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
+    owner = db.StringProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
 
@@ -134,6 +135,7 @@ class NewPost(BlogHandler):
 
         subject = self.request.get('subject')
         content = self.request.get('content')
+        owner = self.user.name
 
         if subject and content:
             p = Post(parent = blog_key(), subject = subject, content = content)
