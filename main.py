@@ -210,6 +210,23 @@ class Signup(BlogHandler):
             self.login(u)
             self.redirect('/welcome')
 
+class Login(BlogHandler):
+    def get(self):
+        self.render('login.html')
+
+    def post(self):
+        username = self.request.get('username')
+        password = self.request.get('password')
+
+        u = User.login(username, password)
+        if u:
+            self.login(u)
+            self.redirect('/welcome')
+        else:
+            msg = 'Invalid login'
+            self.render('login.html', error = msg)
+
+
 class Welcome(BlogHandler):
     def get(self):
         if self.user:
@@ -222,5 +239,6 @@ app = webapp2.WSGIApplication([
     ('/newpost', NewPost),
     ('/blog/([0-9]+)', PostPage),
     ('/signup', Signup),
+    ('/login', Login),
     ('/welcome', Welcome)
 ], debug = True)
