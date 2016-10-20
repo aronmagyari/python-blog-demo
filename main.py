@@ -125,7 +125,10 @@ class BlogFront(BlogHandler):
 
 class NewPost(BlogHandler):
     def get(self):
-        self.render("newpost.html")
+        if self.user:
+            self.render('newpost.html', user = self.user)
+        else:
+            self.redirect('/signup')
 
     def post(self):
 
