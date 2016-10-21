@@ -138,7 +138,7 @@ class NewPost(BlogHandler):
         current_user = User.by_name(self.user.name)
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content, user = current_user.key())
+            p = Post(parent = blog_key(), subject = subject, content = content, user = current_user)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
@@ -154,7 +154,7 @@ class PostPage(BlogHandler):
             self.error(404)
             return
 
-        self.render("post.html", p = post)
+        self.render("post.html", p = post, user = self.user)
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
