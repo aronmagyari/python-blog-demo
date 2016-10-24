@@ -145,6 +145,36 @@ class NewPost(BlogHandler):
             error = "Include subject and content, please!"
             self.render("newpost.html", subject=subject, content=content, error=error)
 
+class EditPost(BlogHandler):
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        if self.user:
+            if self.user.key() == post.user.key():
+                self.render('editpost.html',  user = self.user, p = post)
+            else:
+                err = "Sorry! You can only edit your own posts."
+                self.render('post.html', user = self.user, p = post, error = err)
+        else:
+            self.redirect('/login')
+
+    def post(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+
+        if subject and content:
+            post.subject = subject
+            post.content = content
+            post.put()
+            self.redirect('/blog/%s' % str(post.key().id()))
+        else:
+            error = "Include subject and content, please!"
+            self.render("newpost.html", subject=subject, content=content, error=error)
+
 class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -240,6 +270,7 @@ app = webapp2.WSGIApplication([
     ('/', BlogFront),
     ('/newpost', NewPost),
     ('/blog/([0-9]+)', PostPage),
+    ('/edit/([0-9]+)', EditPost),
     ('/signup', Signup),
     ('/login', Login),
     ('/logout', Logout)
