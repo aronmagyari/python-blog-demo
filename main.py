@@ -78,6 +78,7 @@ class Post(db.Model):
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
     user = db.ReferenceProperty(User, required = True)
+    likes = db.ListProperty(db.Key)
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
 
@@ -179,12 +180,45 @@ class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
+        val = "Like"
 
         if not post:
             self.error(404)
             return
 
-        self.render("post.html", p = post, user = self.user)
+        # check if user has already liked the post
+        if self.user.key() in post.likes:
+            # if yes, display "Unlike" instead of default "Like"
+            val = "Unlike"
+
+
+
+        self.render("post.html", p = post, user = self.user, like_btn = val)
+
+    # POST request on the PostPage handles likes
+    def post(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        val = "Like"
+
+        # check if user is post creator
+        if self.user.key() == post.user.key():
+            err = "Sorry, you can't like your own post!"
+            self.render("post.html", p = post, user = self.user, error = err, like_btn = val)
+        else:
+            # check if user has already liked the post
+            if self.user.key() in post.likes:
+                # if yes, remove user form likes list
+                post.likes.remove(self.user.key())
+                post.put()
+                val = "Like"
+            else:
+                # else add user key to likes
+                post.likes.append(self.user.key())
+                post.put()
+                val = "Unlike"
+
+            self.render("post.html", p = post, user = self.user, like_btn = val)
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):

@@ -5,7 +5,10 @@
 <div class="row">
   <div class="col-sm-1"></div>
   <div class="list-group col-sm-10">
-    <a href="/edit/{{ p.key().id() }}" class="btn btn-primary">Edit Post</a>
+    <form class="" method="post">
+      <a href="/edit/{{ p.key().id() }}" class="btn btn-primary">Edit Post</a>
+      <input type="submit" class="btn btn-info" value="{{like_btn}}">
+    </form>
 
     {% if error %}
     <div class="alert alert-danger" role="alert">{{error}}</div>
