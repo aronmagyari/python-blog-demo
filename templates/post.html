@@ -5,7 +5,7 @@
 <div class="row">
   <div class="col-sm-1"></div>
   <div class="list-group col-sm-10">
-    <form class="" method="post">
+    <form class="" action="/like/{{p.key().id()}}" method="post">
       <a href="/edit/{{ p.key().id() }}" class="btn btn-primary">Edit Post</a>
       <input type="submit" class="btn btn-info" value="{{like_btn}}">
     </form>
@@ -30,7 +30,28 @@
 
     <div class="post-content">
       {{p._render_text() | safe}}
+      <hr>
+      <b>{{like_ct}} Likes</b>
+      <hr>
+      <form  method="post" action="/comment/{{ p.key().id() }}">
+        <input type="textbox" name="content" value="">
+        <input type="submit" value="Add Comment">
+      </form>
+      <hr>
+      {% if comments[0] %}
+      {% for c in comments %}
+
+        <div>
+          <p>
+            {{c.content}}
+          </p>
+          <a href="/content/edit/{{c.key().id()}}" class="btn btn-sm btn-default">Edit</a>
+        </div>
+        <hr>
+      {% endfor %}
+      {% endif %}
     </div>
+
   </div>
 </div>
 

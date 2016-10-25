@@ -85,6 +85,23 @@ class Post(db.Model):
     def _render_text(self):
         return self.content.replace('\n', '<br>')
 
+    def _toggle_like(self, user):
+        if user.key() in self.likes:
+            # if yes, remove user form likes list
+            self.likes.remove(user.key())
+            self.put()
+            return "Like"
+        else:
+            # else add user key to likes
+            self.likes.append(user.key())
+            self.put()
+            return "Unlike"
+
+class Comment(db.Model):
+    user = db.ReferenceProperty(User)
+    post = db.ReferenceProperty(Post, collection_name="comment_set")
+    content = db.TextProperty(required = True)
+
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -151,12 +168,22 @@ class EditPost(BlogHandler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
 
+        val = "Like"
+
         if self.user:
             if self.user.key() == post.user.key():
                 self.render('editpost.html',  user = self.user, p = post)
             else:
                 err = "Sorry! You can only edit your own posts."
-                self.render('post.html', user = self.user, p = post, error = err)
+
+                if self.user and self.user.key() in post.likes:
+                    # if yes, display "Unlike" instead of default "Like"
+                    val = "Unlike"
+
+                comments = post.comment_set
+
+                like_ct = len(post.likes)
+                self.render("post.html", p = post, user = self.user, error = err, like_btn = like_btn, like_ct = like_ct, comments = comments)
         else:
             self.redirect('/login')
 
@@ -191,10 +218,29 @@ class PostPage(BlogHandler):
             # if yes, display "Unlike" instead of default "Like"
             val = "Unlike"
 
+        comments = post.comment_set
+
+        like_ct = len(post.likes)
+        self.render("post.html", p = post, user = self.user, like_btn = val, like_ct = like_ct, comments = comments)
+
+class CommentPost(BlogHandler):
+    # POST request on the PostPage handles comments
+    def post(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        if self.user:
+
+            new_comment = Comment(user = self.user, post = post, content = self.request.get('content'))
+            new_comment.put()
+
+            self.redirect("/blog/%s" % str(post.key().id()))
+
+        else:
+            self.redirect('/login')
 
 
-        self.render("post.html", p = post, user = self.user, like_btn = val)
-
+class LikePost(BlogHandler):
     # POST request on the PostPage handles likes
     def post(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -205,21 +251,19 @@ class PostPage(BlogHandler):
             # check if user is post creator
             if self.user.key() == post.user.key():
                 err = "Sorry, you can't like your own post!"
-                self.render("post.html", p = post, user = self.user, error = err, like_btn = val)
-            else:
-                # check if user has already liked the post
-                if self.user.key() in post.likes:
-                    # if yes, remove user form likes list
-                    post.likes.remove(self.user.key())
-                    post.put()
-                    val = "Like"
-                else:
-                    # else add user key to likes
-                    post.likes.append(self.user.key())
-                    post.put()
-                    val = "Unlike"
 
-                self.render("post.html", p = post, user = self.user, like_btn = val)
+                comments = post.comment_set
+
+                like_ct = len(post.likes)
+                self.render("post.html", p = post, user = self.user, error = err, like_btn = val, like_ct = like_ct, comments = comments)
+            else:
+                like_btn = post._toggle_like(self.user)
+
+                like_ct = len(post.likes)
+
+                comments = post.comment_set
+
+                self.render("post.html", p = post, user = self.user, like_btn = like_btn, like_ct = like_ct, comments = comments)
         else:
             self.redirect('/login')
 
@@ -309,6 +353,8 @@ app = webapp2.WSGIApplication([
     ('/newpost', NewPost),
     ('/blog/([0-9]+)', PostPage),
     ('/edit/([0-9]+)', EditPost),
+    ('/like/([0-9]+)', LikePost),
+    ('/comment/([0-9]+)', CommentPost),
     ('/signup', Signup),
     ('/login', Login),
     ('/logout', Logout)
