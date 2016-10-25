@@ -102,6 +102,9 @@ class Comment(db.Model):
     post = db.ReferenceProperty(Post, collection_name="comment_set")
     content = db.TextProperty(required = True)
 
+    def _render_text(self):
+        return self.content.replace('\n', '<br>')
+
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -226,19 +229,63 @@ class PostPage(BlogHandler):
 class CommentPost(BlogHandler):
     # POST request on the PostPage handles comments
     def post(self, post_id):
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
 
         if self.user:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
 
             new_comment = Comment(user = self.user, post = post, content = self.request.get('content'))
-            new_comment.put()
+            new_comment_key = new_comment.put()
+
+            # fix delay, so new comment shows up after redirect
+            comm = Comment.get(new_comment_key)
 
             self.redirect("/blog/%s" % str(post.key().id()))
 
         else:
             self.redirect('/login')
 
+class CommentEdit(BlogHandler):
+    def get(self, post_id, comment_id):
+        if self.user:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            comment = Comment.get_by_id(int(comment_id))
+
+            if self.user.key() == comment.user.key():
+                self.render("editcomment.html", user = self.user, p = post, c = comment)
+
+            else:
+
+                if self.user and self.user.key() in post.likes:
+                    # if yes, display "Unlike" instead of default "Like"
+                    val = "Unlike"
+                else:
+                    val = "Like"
+
+                comments = post.comment_set
+                like_ct = len(post.likes)
+                error = "Only the owner can edit or delete the post"
+                self.render("post.html", p = post, user = self.user, like_btn = val, like_ct = like_ct, comments = comments, error = error)
+
+        else:
+            self.redirect('/login')
+
+    def post(self, post_id, comment_id):
+
+        if self.user:
+            comment = Comment.get_by_id(int(comment_id))
+
+            content = self.request.get('content')
+            comment.content = content
+
+            c_key = comment.put()
+            comm = Comment.get(c_key)
+
+            self.redirect('/blog/%s' % comm.post.key().id())
+
+        else:
+            self.redirect('/login')
 
 class LikePost(BlogHandler):
     # POST request on the PostPage handles likes
@@ -355,6 +402,7 @@ app = webapp2.WSGIApplication([
     ('/edit/([0-9]+)', EditPost),
     ('/like/([0-9]+)', LikePost),
     ('/comment/([0-9]+)', CommentPost),
+    ('/comment/([0-9]+)/edit/([0-9]+)', CommentEdit),
     ('/signup', Signup),
     ('/login', Login),
     ('/logout', Logout)

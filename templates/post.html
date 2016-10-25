@@ -34,8 +34,8 @@
       <b>{{like_ct}} Likes</b>
       <hr>
       <form  method="post" action="/comment/{{ p.key().id() }}">
-        <input type="textbox" name="content" value="">
-        <input type="submit" value="Add Comment">
+        <textarea rows="5" class="col-sm-12" name="content"></textarea>
+        <input type="submit" class="btn btn-primary" value="Add Comment">
       </form>
       <hr>
       {% if comments[0] %}
@@ -43,9 +43,10 @@
 
         <div>
           <p>
-            {{c.content}}
+            {{c._render_text() | safe}}
           </p>
-          <a href="/content/edit/{{c.key().id()}}" class="btn btn-sm btn-default">Edit</a>
+          <a href="/comment/{{ p.key().id() }}/edit/{{c.key().id()}}" class="btn btn-sm btn-default">Edit</a>
+
         </div>
         <hr>
       {% endfor %}
