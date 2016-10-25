@@ -186,7 +186,6 @@ class EditPost(BlogHandler):
             else:
                 err = "Sorry! You can only edit your own posts."
 
-                comments = post.comment_set
 
                 self.render("post.html", p = post, user = self.user, error = err)
         else:
@@ -217,7 +216,6 @@ class PostPage(BlogHandler):
             self.error(404)
             return
 
-        comments = post.comment_set
 
         self.render("post.html", p = post, user = self.user)
 
@@ -251,7 +249,6 @@ class CommentEdit(BlogHandler):
                 self.render("editcomment.html", user = self.user, p = post, c = comment)
 
             else:
-                comments = post.comment_set
                 error = "Only the owner can edit the comment"
                 self.render("post.html", p = post, user = self.user, error = error)
 
@@ -305,15 +302,9 @@ class LikePost(BlogHandler):
             # check if user is post creator
             if self.user.key() == post.user.key():
                 err = "Sorry, you can't like your own post!"
-
-                comments = post.comment_set
-
                 self.render("post.html", p = post, user = self.user, error = err)
             else:
-
-
-                comments = post.comment_set
-
+                post._toggle_like(self.user)
                 self.render("post.html", p = post, user = self.user)
         else:
             self.redirect('/login')

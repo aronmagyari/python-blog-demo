@@ -43,6 +43,9 @@
 
         <div>
           <p>
+            <b>{{c.user.name}} says:</b>
+          </p>
+          <p>
             {{c._render_text() | safe}}
           </p>
           <form action="/comment/{{ p.key().id() }}/delete/{{c.key().id()}}" method="post">
