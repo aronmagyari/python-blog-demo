@@ -187,7 +187,7 @@ class PostPage(BlogHandler):
             return
 
         # check if user has already liked the post
-        if self.user.key() in post.likes:
+        if self.user and self.user.key() in post.likes:
             # if yes, display "Unlike" instead of default "Like"
             val = "Unlike"
 
@@ -201,24 +201,28 @@ class PostPage(BlogHandler):
         post = db.get(key)
         val = "Like"
 
-        # check if user is post creator
-        if self.user.key() == post.user.key():
-            err = "Sorry, you can't like your own post!"
-            self.render("post.html", p = post, user = self.user, error = err, like_btn = val)
-        else:
-            # check if user has already liked the post
-            if self.user.key() in post.likes:
-                # if yes, remove user form likes list
-                post.likes.remove(self.user.key())
-                post.put()
-                val = "Like"
+        if self.user:
+            # check if user is post creator
+            if self.user.key() == post.user.key():
+                err = "Sorry, you can't like your own post!"
+                self.render("post.html", p = post, user = self.user, error = err, like_btn = val)
             else:
-                # else add user key to likes
-                post.likes.append(self.user.key())
-                post.put()
-                val = "Unlike"
+                # check if user has already liked the post
+                if self.user.key() in post.likes:
+                    # if yes, remove user form likes list
+                    post.likes.remove(self.user.key())
+                    post.put()
+                    val = "Like"
+                else:
+                    # else add user key to likes
+                    post.likes.append(self.user.key())
+                    post.put()
+                    val = "Unlike"
 
-            self.render("post.html", p = post, user = self.user, like_btn = val)
+                self.render("post.html", p = post, user = self.user, like_btn = val)
+        else:
+            self.redirect('/login')
+
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
