@@ -7,7 +7,7 @@
   <div class="list-group col-sm-10">
     <form class="" action="/like/{{p.key().id()}}" method="post">
       <a href="/edit/{{ p.key().id() }}" class="btn btn-primary">Edit Post</a>
-      <input type="submit" class="btn btn-info" value="{{like_btn}}">
+      <input type="submit" class="btn btn-info" value="{{p._display_like_text(user)}}">
     </form>
 
     {% if error %}
@@ -31,7 +31,7 @@
     <div class="post-content">
       {{p._render_text() | safe}}
       <hr>
-      <b>{{like_ct}} Likes</b>
+      <b>{{p._display_like_count()}} Likes</b>
       <hr>
       <form  method="post" action="/comment/{{ p.key().id() }}">
         <textarea rows="5" class="col-sm-12" name="content"></textarea>
