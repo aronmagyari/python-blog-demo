@@ -162,18 +162,19 @@ class NewPost(BlogHandler):
             self.redirect('/login')
 
     def post(self):
-
         subject = self.request.get('subject')
         content = self.request.get('content')
         current_user = User.by_name(self.user.name)
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content, user = current_user)
+            p = Post(parent = blog_key(), subject = subject,
+                     content = content, user = current_user)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
             error = "Include subject and content, please!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
+            self.render("newpost.html", subject=subject,
+                        content=content, error=error)
 
 class EditPost(BlogHandler):
     def get(self, post_id):
@@ -185,8 +186,6 @@ class EditPost(BlogHandler):
                 self.render('editpost.html',  user = self.user, p = post)
             else:
                 err = "Sorry! You can only edit your own posts."
-
-
                 self.render("post.html", p = post, user = self.user, error = err)
         else:
             self.redirect('/login')
@@ -194,7 +193,6 @@ class EditPost(BlogHandler):
     def post(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-
         subject = self.request.get('subject')
         content = self.request.get('content')
 
@@ -205,7 +203,8 @@ class EditPost(BlogHandler):
             self.redirect('/blog/%s' % str(post.key().id()))
         else:
             error = "Include subject and content, please!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
+            self.render("newpost.html", subject = subject,
+                        content = content, error = error)
 
 class PostPage(BlogHandler):
     def get(self, post_id):
@@ -215,26 +214,20 @@ class PostPage(BlogHandler):
         if not post:
             self.error(404)
             return
-
-
-        self.render("post.html", p = post, user = self.user)
+        else:
+            self.render("post.html", p = post, user = self.user)
 
 class CommentPost(BlogHandler):
-    # POST request on the PostPage handles comments
     def post(self, post_id):
-
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-
-            new_comment = Comment(user = self.user, post = post, content = self.request.get('content'))
+            content = self.request.get('content')
+            new_comment = Comment(user = self.user, post = post, content = content)
             new_comment_key = new_comment.put()
-
             # fix delay, so new comment shows up after redirect
             comm = Comment.get(new_comment_key)
-
             self.redirect("/blog/%s" % str(post.key().id()))
-
         else:
             self.redirect('/login')
 
@@ -246,12 +239,11 @@ class CommentEdit(BlogHandler):
             comment = Comment.get_by_id(int(comment_id))
 
             if self.user.key() == comment.user.key():
-                self.render("editcomment.html", user = self.user, p = post, c = comment)
-
+                self.render("editcomment.html", user = self.user,
+                            p = post, c = comment)
             else:
                 error = "Only the owner can edit the comment"
                 self.render("post.html", p = post, user = self.user, error = error)
-
         else:
             self.redirect('/login')
 
@@ -259,15 +251,11 @@ class CommentEdit(BlogHandler):
 
         if self.user:
             comment = Comment.get_by_id(int(comment_id))
-
             content = self.request.get('content')
             comment.content = content
-
             c_key = comment.put()
             comm = Comment.get(c_key)
-
             self.redirect('/blog/%s' % comm.post.key().id())
-
         else:
             self.redirect('/login')
 
@@ -280,12 +268,9 @@ class CommentDelete(BlogHandler):
 
             if self.user.key() == comment.user.key():
                 comment.delete()
-
                 comment = Comment.get_by_id(int(comment_id))
                 print comment
-
                 self.redirect('/blog/%s' % post.key().id())
-
             else:
                 key = db.Key.from_path('Post', int(post_id), parent=blog_key())
                 post = db.get(key)
@@ -293,7 +278,6 @@ class CommentDelete(BlogHandler):
                 self.render("post.html", p = post, user = self.user, error = err)
 
 class LikePost(BlogHandler):
-    # POST request on the PostPage handles likes
     def post(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
@@ -327,7 +311,6 @@ def username_taken(username):
     return True if u else False
 
 class Signup(BlogHandler):
-
     def get(self):
         self.render("signup.html")
 
