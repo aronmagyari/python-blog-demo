@@ -38,15 +38,17 @@
         <input type="submit" class="btn btn-primary" value="Add Comment">
       </form>
       <hr>
-      {% if comments[0] %}
-      {% for c in comments %}
+      {% if p.comment_set[0] %}
+      {% for c in p.comment_set %}
 
         <div>
           <p>
             {{c._render_text() | safe}}
           </p>
-          <a href="/comment/{{ p.key().id() }}/edit/{{c.key().id()}}" class="btn btn-sm btn-default">Edit</a>
-
+          <form action="/comment/{{ p.key().id() }}/delete/{{c.key().id()}}" method="post">
+            <a href="/comment/{{ p.key().id() }}/edit/{{c.key().id()}}" class="btn btn-sm btn-default">Edit</a>
+            <input type="submit" class="btn btn-sm btn-danger" value="Delete">
+          </form>
         </div>
         <hr>
       {% endfor %}

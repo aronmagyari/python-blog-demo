@@ -188,7 +188,7 @@ class EditPost(BlogHandler):
 
                 comments = post.comment_set
 
-                self.render("post.html", p = post, user = self.user, error = err, comments = comments)
+                self.render("post.html", p = post, user = self.user, error = err)
         else:
             self.redirect('/login')
 
@@ -219,7 +219,7 @@ class PostPage(BlogHandler):
 
         comments = post.comment_set
 
-        self.render("post.html", p = post, user = self.user, comments = comments)
+        self.render("post.html", p = post, user = self.user)
 
 class CommentPost(BlogHandler):
     # POST request on the PostPage handles comments
@@ -252,8 +252,8 @@ class CommentEdit(BlogHandler):
 
             else:
                 comments = post.comment_set
-                error = "Only the owner can edit or delete the post"
-                self.render("post.html", p = post, user = self.user, comments = comments, error = error)
+                error = "Only the owner can edit the comment"
+                self.render("post.html", p = post, user = self.user, error = error)
 
         else:
             self.redirect('/login')
@@ -274,6 +274,27 @@ class CommentEdit(BlogHandler):
         else:
             self.redirect('/login')
 
+class CommentDelete(BlogHandler):
+    def post(self, post_id, comment_id):
+        if self.user:
+            comment = Comment.get_by_id(int(comment_id))
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+
+            if self.user.key() == comment.user.key():
+                comment.delete()
+
+                comment = Comment.get_by_id(int(comment_id))
+                print comment
+
+                self.redirect('/blog/%s' % post.key().id())
+
+            else:
+                key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+                post = db.get(key)
+                err = "Sorry! Only the owner can delete a comment"
+                self.render("post.html", p = post, user = self.user, error = err)
+
 class LikePost(BlogHandler):
     # POST request on the PostPage handles likes
     def post(self, post_id):
@@ -287,13 +308,13 @@ class LikePost(BlogHandler):
 
                 comments = post.comment_set
 
-                self.render("post.html", p = post, user = self.user, error = err, comments = comments)
+                self.render("post.html", p = post, user = self.user, error = err)
             else:
 
 
                 comments = post.comment_set
 
-                self.render("post.html", p = post, user = self.user, comments = comments)
+                self.render("post.html", p = post, user = self.user)
         else:
             self.redirect('/login')
 
@@ -386,6 +407,7 @@ app = webapp2.WSGIApplication([
     ('/like/([0-9]+)', LikePost),
     ('/comment/([0-9]+)', CommentPost),
     ('/comment/([0-9]+)/edit/([0-9]+)', CommentEdit),
+    ('/comment/([0-9]+)/delete/([0-9]+)', CommentDelete),
     ('/signup', Signup),
     ('/login', Login),
     ('/logout', Logout)
