@@ -199,15 +199,22 @@ class EditPost(BlogHandler):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
-        if subject and content:
-            post.subject = subject
-            post.content = content
-            post.put()
-            self.redirect('/blog/%s' % str(post.key().id()))
+        if self.user:
+            if self.user.key() == post.user.key():
+                if subject and content:
+                    post.subject = subject
+                    post.content = content
+                    post.put()
+                    self.redirect('/blog/%s' % str(post.key().id()))
+                else:
+                    error = "Include subject and content, please!"
+                    self.render("newpost.html", subject = subject,
+                                content = content, error = error)
+            else:
+                err = "Sorry! You can only edit your own posts."
+                self.render("post.html", p = post, user = self.user, error = err)
         else:
-            error = "Include subject and content, please!"
-            self.render("newpost.html", subject = subject,
-                        content = content, error = error)
+            self.redirect('/login')
 
 class PostPage(BlogHandler):
     def get(self, post_id):
