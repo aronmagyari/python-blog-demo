@@ -162,19 +162,22 @@ class NewPost(BlogHandler):
             self.redirect('/login')
 
     def post(self):
-        subject = self.request.get('subject')
-        content = self.request.get('content')
-        current_user = User.by_name(self.user.name)
+        if self.user:
+            subject = self.request.get('subject')
+            content = self.request.get('content')
+            current_user = User.by_name(self.user.name)
 
-        if subject and content:
-            p = Post(parent = blog_key(), subject = subject,
-                     content = content, user = current_user)
-            p.put()
-            self.redirect('/blog/%s' % str(p.key().id()))
+            if subject and content:
+                p = Post(parent = blog_key(), subject = subject,
+                         content = content, user = current_user)
+                p.put()
+                self.redirect('/blog/%s' % str(p.key().id()))
+            else:
+                error = "Include subject and content, please!"
+                self.render("newpost.html", subject=subject,
+                            content=content, error=error)            
         else:
-            error = "Include subject and content, please!"
-            self.render("newpost.html", subject=subject,
-                        content=content, error=error)
+            self.redirect('/login')
 
 class EditPost(BlogHandler):
     def get(self, post_id):
