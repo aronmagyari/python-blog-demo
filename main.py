@@ -217,6 +217,22 @@ class EditPost(BlogHandler):
         else:
             self.redirect('/login')
 
+class DeletePost(BlogHandler):
+    def post(self, post_id):
+        post = Post.get_by_id(int(post_id), parent = posts_key())
+
+        if self.user:
+            if self.user.key() == post.user.key():
+                post.delete()
+                post = Post.get_by_id(int(post_id), parent = posts_key())
+                self.redirect('/')
+
+            else:
+                err = "Sorry! You can only delete your own posts."
+                self.render("post.html", p = post, user = self.user, error = err)
+        else:
+            self.redirect('/login')
+
 class PostPage(BlogHandler):
     def get(self, post_id):
         post = Post.get_by_id(int(post_id), parent = posts_key())
@@ -391,6 +407,7 @@ app = webapp2.WSGIApplication([
     ('/blog/([0-9]+)', PostPage),
     ('/edit/([0-9]+)', EditPost),
     ('/like/([0-9]+)', LikePost),
+    ('/delete/([0-9]+)', DeletePost),
     ('/comment/([0-9]+)', CommentPost),
     ('/comment/([0-9]+)/edit/([0-9]+)', CommentEdit),
     ('/comment/([0-9]+)/delete/([0-9]+)', CommentDelete),

@@ -5,11 +5,15 @@
 <div class="row">
   <div class="col-sm-1"></div>
   <div class="list-group col-sm-10">
-    <form class="" action="/like/{{p.key().id()}}" method="post">
+    <form action="/like/{{p.key().id()}}" method="post">
       <a href="/edit/{{ p.key().id() }}" class="btn btn-primary">Edit Post</a>
       <input type="submit" class="btn btn-info" value="{{p._display_like_text(user)}}">
     </form>
-
+    <br>
+    <form action="/delete/{{p.key().id()}}" method="post">
+      <input type="submit" class="btn btn-danger" value="Delete Post">
+    </form>
+    
     {% if error %}
     <div class="alert alert-danger" role="alert">{{error}}</div>
     {% endif %}
