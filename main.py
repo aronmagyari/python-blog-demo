@@ -233,7 +233,8 @@ class CommentPost(BlogHandler):
         if self.user:
             post = Post.get_by_id(int(post_id), parent = posts_key())
             content = self.request.get('content')
-            new_comment = Comment(user = self.user, post = post, content = content)
+            new_comment = Comment(parent = comments_key(), user = self.user, 
+                                  post = post, content = content)
             new_comment_key = new_comment.put()
             # fix delay, so new comment shows up after redirect
             comm = Comment.get(new_comment_key)
